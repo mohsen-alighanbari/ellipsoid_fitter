@@ -1,0 +1,286 @@
+% MIT License
+% 
+% Copyright (c) 2024 Mohsen Alighanbari, Sina Alighanbari, Lisa Griffin
+% 
+% Permission is hereby granted, free of charge, to any person obtaining a copy
+% of this software and associated documentation files (the "Software"), to deal
+% in the Software without restriction, including without limitation the rights
+% to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+% copies of the Software, and to permit persons to whom the Software is
+% furnished to do so, subject to the following conditions:
+% 
+% The above copyright notice and this permission notice shall be included in all
+% copies or substantial portions of the Software.
+% 
+% THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+% IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+% FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+% AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+% LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+% OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+% SOFTWARE.
+
+function [data_trimmer_approach_volume,optimization_approach_volume,pca_approach_volume, ...
+    percentage_points_inside_initial_ellipsoid,percentage_points_inside_data_trimmer_ellipsoid,...
+    percentage_points_inside_optimization_ellipsoid,percentage_points_inside_pca_ellipsoid,CAA_time,...
+    optim_time,trim_time,pca_time] = MVEE_3d_v12(x,y,z,do_plot,do_display,tolerance)
+% load('mohsen_3d1.mat');
+
+%%%%%%%%%%%%%%%%%%%% INPUT PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% x is the input data.
+% y is the input data.
+% z is the input data.
+%
+% do_plot is a boolean flag that enables plotting ellipsoids, set to false
+% by default.
+% do_display is a boolean flag that enables displaying messages to command
+% window, set to false by default.
+% tolerance is the input tolerance for CAA method, set to 1e-7 by default.
+%%%%%%%%%%%%%%%%%%%%% OUTPUT PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% data_trimmer_approach_volume: is the calculated volume of the data trimmer method
+%
+% optimization_approach_volume: is the calculated volume of the optimization method
+%
+% pca_approach_volume: is the calculated volume of the pca method
+%
+% percentage_points_inside_initial_ellipsoid: percentage of points
+% inside ellipsoid determined by CAA algorithm
+%
+% percentage_points_inside_data_trimmer_ellipsoid: Final percentage of
+% points inside ellisoid determined by data trimmer method
+%
+% percentage_points_inside_optimization_ellipsoid: Final percentage of
+% points inside ellisoid determined by optimization method
+%
+% percentage_points_inside_pca_ellipsoid: Final percentage of
+% points inside ellisoid determined by pca method
+% 
+% CAA_time: Wall clock time for CAA algorithm
+%
+% optim_time: Wall clock time for optimization method
+%
+% trim_time: Wall clock time for data trimmer approach
+%
+% pca_time: Wal clock time for PCA method
+
+
+if (nargin < 1), error('Please input X'); end
+if ~iscolumn(x), error('The X vector is not column vector'); end
+if (nargin < 2), error('Please input Y'); end
+if ~iscolumn(y), error('The Y vector is not column vector'); end
+if (nargin < 3), error('Please input Z'); end
+if ~iscolumn(z), error('The z vector is not column vector'); end
+if (nargin < 4), do_plot=false; end
+if (nargin < 5), do_display=false; end
+if (nargin < 6), tolerance=1e-7; end
+
+
+% Constructing the required input matrix.
+%Columns of the X vector should be our data points. X matrix should be 3*m
+%where m is number of datat points
+for i=1:size(x,1)
+    X_original(1,i) = x(i,1)-mean(x,1);
+    X_original(2,i) = y(i,1)-mean(y,1);
+    X_original(3,i) = z(i,1)-mean(z,1);
+end
+
+% calling the MVEE function on original data to find the best fit ellipse
+tic;
+[u,R,factor,improv,mxv,mnv,flagstep,lamhist,var,time,iter,act,lengths,angles,eigen_vector,eigen_value] = minvol_3d(X_original,X_original,tolerance);
+ellapsed_time_CAA = toc;
+CAA_time = ellapsed_time_CAA;
+
+a = lengths(1);
+b = lengths(2);
+c = lengths(3);
+u_mvee = linspace(0,2*pi,101);
+v_mvee = linspace(0,pi,101);
+x0_mvee=[];
+y0_mvee=[];
+z0_mvee=[];
+for i=1:size(u_mvee,2)
+    for j=1:size(v_mvee,2)
+        x0_mvee(end+1) = a*cos(u_mvee(i))*sin(v_mvee(j));
+        y0_mvee(end+1) = b*sin(u_mvee(i))*sin(v_mvee(j));
+        z0_mvee(end+1) = c*cos(v_mvee(j));
+    end
+end
+initial_state_mvee = [x0_mvee',y0_mvee',z0_mvee'];
+rotated_state_mvee = initial_state_mvee*eigen_vector';
+final_per = percent_finder_3d(x,y,z,a,b,c,eigen_vector);
+percentage_points_inside_initial_ellipsoid = final_per;
+if do_display
+    disp(['The percentage of points inside the initial ellipsoid: ', num2str(final_per)]);
+end
+
+if do_plot
+    figure;
+    plot3(x-mean(x,1),y-mean(y,1),z-mean(z,1),'*k');
+    hold on;
+    plot3(rotated_state_mvee(:,1),rotated_state_mvee(:,2),rotated_state_mvee(:,3));
+    title('Initial ellipsoid generated by MVEE');
+    xlabel('x distance in mm','FontSize',14);
+    ylabel('y distance in mm','FontSize',14);
+    zlabel('z distance in mm','FontSize',14);
+end
+
+
+%%%%%%%%%%%% Data trimmer approach %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+tic
+[x_t,y_t,z_t, a_t,b_t,c_t,iteration_final_percent] = data_trimmer_ellipse_3d(x,y,z,a,b,c,eigen_vector);
+elapsed_time_data_trim = toc;
+trim_time = elapsed_time_data_trim;
+for i=1:size(x_t)
+    X(1,i) = x_t(i,1)-mean(x);
+    X(2,i) = y_t(i,1)-mean(y);
+    X(3,i) = z_t(i,1)-mean(z);
+end
+
+
+percentage_points_inside_data_trimmer_ellipsoid = iteration_final_percent;
+if do_display
+    disp(['The percentage of points inside the ellipsoid (iteration method): ', num2str(iteration_final_percent)]);
+end
+
+if do_plot
+    figure;
+    data_plot = plot3(x-mean(x),y-mean(y),z-mean(z),'*b');
+    hold on;
+    data_trim_plot  = plot3(x_t-mean(x),y_t-mean(y),z_t-mean(z),'*k');
+    title('Plot of generated ellipsoids by different methods');
+    xlabel('x distance in mm');
+    ylabel('y distance in mm');
+    zlabel('z distance in mm');
+end
+
+u_data = linspace(0,2*pi,101);
+v_data = linspace(0,pi,101);
+x0_data=[];
+y0_data=[];
+z0_data=[];
+for i=1:size(u_data,2)
+    for j=1:size(v_data,2)
+        x0_data(end+1) = a_t*cos(u_data(i))*sin(v_data(j));
+        y0_data(end+1) = b_t*sin(u_data(i))*sin(v_data(j));
+        z0_data(end+1) = c_t*cos(v_data(j));
+    end
+end
+initial_state_data = [x0_data',y0_data',z0_data'];
+rotated_state_data = initial_state_data*eigen_vector';
+if do_plot
+    ellipse_data_trim_plot = plot3(rotated_state_data(:,1),rotated_state_data(:,2),rotated_state_data(:,3));
+end
+
+volume = 4/3* pi*a_t*b_t*c_t;
+data_trimmer_approach_volume = volume;
+
+if do_display
+    disp(['The final volume of data trimmer is: ' , num2str(volume)]);
+end
+
+
+%%%%%%%%%%%%% The optimization approach   %%%%%%%%%%%%%%%%%%%%%%%%%%%5
+tic;
+X_optim = x-mean(x);
+Y_optim = y-mean(y);
+Z_optim = z-mean(z);
+save("optim_required_3d2.mat","X_optim", "Y_optim","Z_optim","eigen_vector","final_per");
+
+fun = @(p)4/3*pi*p(1)*p(2)*p(3);
+if do_display
+    options = optimoptions('fmincon','Display','iter',"Algorithm","active-set","MaxFunctionEvaluations",3e+10,"MaxIterations",1000);
+else
+    options = optimoptions('fmincon','Display','none',"Algorithm","active-set","MaxFunctionEvaluations",3e+10,"MaxIterations",1000);
+end
+
+A=[];b=[];Aeq=[];beq=[];lb=[lengths(1)-0.9*lengths(1),lengths(2)-0.9*lengths(2),lengths(3)-0.9*lengths(3)];ub=[lengths(1)+0.9*lengths(1),lengths(2)+0.9*lengths(2),lengths(3)+0.9*lengths(3)];
+nonlcon = @max_percent_nonlcon_3d;
+initial_value_p = 0.3;
+p0= [lengths(1)+initial_value_p*lengths(1),lengths(2)+initial_value_p*lengths(2),lengths(3)+initial_value_p*lengths(3)];
+p = fmincon(fun,p0,A,b,Aeq,beq,lb,ub,nonlcon,options);
+
+optimization_time = toc;
+optim_time = optimization_time;
+
+optimization_final_percent = percent_finder_3d(x,y,z,p(1,1),p(1,2),p(1,3),eigen_vector);
+final_eigen_optimization = eigen_vector;
+
+
+volume_optimization = 4/3*pi*p(1,1)*p(1,2)*p(1,3);
+optimization_approach_volume = volume_optimization;
+
+
+
+
+percentage_points_inside_optimization_ellipsoid = optimization_final_percent;
+if do_display
+    disp(['The percentage of points inside the ellipsoid (optimization method): ', num2str(optimization_final_percent)]);
+    disp(['The final volume of optimization method is: ' , num2str(volume_optimization)]);
+end
+
+
+u_optim = linspace(0,2*pi,101);
+v_optim = linspace(0,pi,101);
+x0_optim=[];
+y0_optim=[];
+z0_optim=[];
+for i=1:size(u_optim,2)
+    for j=1:size(v_optim,2)
+        x0_optim(end+1) = p(1,1)*cos(u_optim(i))*sin(v_optim(j));
+        y0_optim(end+1) = p(1,2)*sin(u_optim(i))*sin(v_optim(j));
+        z0_optim(end+1) = p(1,3)*cos(v_optim(j));
+    end
+end
+initial_state_optim = [x0_optim',y0_optim',z0_optim'];
+rotated_state_optim = initial_state_optim*final_eigen_optimization';
+
+if do_plot
+    ellipse_optim_plot = plot3(rotated_state_optim(:,1),rotated_state_optim(:,2),rotated_state_optim(:,3),'r');
+end
+% title(["The ellipsoid for optimization method. Coverage percentage: ",num2str(optimization_final_percent)]);
+
+%%%%%%%%%%%%%%% The PCA approach  %%%%%%%%%%%%%%%%%%%%%%%%
+tic;
+pca_covar = cov([x-mean(x,1),y-mean(y,1),z-mean(z,1)]);
+[pca_eigen_vector, pca_eigen_value] = eig(pca_covar);
+
+volume_pca = 4/3*pi*sqrt(pca_eigen_value(1,1))*sqrt(7.814727903)*sqrt(pca_eigen_value(2,2))*sqrt(7.814727903)*sqrt(pca_eigen_value(3,3))*sqrt(7.814727903);
+pca_approach_volume = volume_pca;
+pca_elapsed_time = toc;
+pca_time = pca_elapsed_time;
+
+
+u_pca = linspace(0,2*pi,101);
+v_pca = linspace(0,pi,101);
+x0_pca=[];
+y0_pca=[];
+z0_pca=[];
+for i=1:size(u_pca,2)
+    for j=1:size(v_pca,2)
+        x0_pca(end+1) = sqrt(pca_eigen_value(1,1))*sqrt(7.814727903)*cos(u_pca(i))*sin(v_pca(j));
+        y0_pca(end+1) = sqrt(pca_eigen_value(2,2))*sqrt(7.814727903)*sin(u_pca(i))*sin(v_pca(j));
+        z0_pca(end+1) = sqrt(pca_eigen_value(3,3))*sqrt(7.814727903)*cos(v_pca(j));
+    end
+end
+initial_state_pca = [x0_pca',y0_pca',z0_pca'];
+rotated_state_pca = initial_state_pca*pca_eigen_vector';
+
+percentage_points_inside_pca_ellipsoid = percent_finder_3d(x,y,z,sqrt(pca_eigen_value(1,1))*sqrt(7.814727903),sqrt(pca_eigen_value(2,2))*sqrt(7.814727903),sqrt(pca_eigen_value(3,3))*sqrt(7.814727903),pca_eigen_vector);
+
+if do_display
+    disp(['The percentage of points inside the ellipsoid (pca method): ', num2str(percentage_points_inside_pca_ellipsoid)]);
+    disp(['The total volume for pca is: ', num2str(volume_pca)]);
+end
+
+if do_plot
+    ellipse_pca_plot = plot3(rotated_state_pca(:,1),rotated_state_pca(:,2),rotated_state_pca(:,3));
+    legend([data_plot,data_trim_plot,ellipse_data_trim_plot,ellipse_optim_plot,ellipse_pca_plot],'Original Points','Trimmed Points','Ellipse Data trimmer','Ellipse Optimization','Ellipse PCA','Location','southeast');
+end
+
+
+if do_display
+    disp('End!');
+end
+
+return;
