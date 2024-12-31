@@ -1,12 +1,13 @@
 This software is part of the publication with title "Enclosing 95% confidence 
 area and volume to center of pressure and center of mass in posturography 
-using optimization and coordinate ascent methods." under review in 
-the Computers in Biology and Medicine Journal. 
+using optimization and coordinate ascent methods." Published in 
+the Journal of Computers in Biology and Medicine.
+
+DOI: https://doi.org/10.1016/j.compbiomed.2024.109563
 
 Please cite the above publication if you are using all or parts of this 
 code.
  
-DOI: https://doi.org/10.1016/j.compbiomed.2024.109563
 
 
 /////////////////////////////////////// Instructions /////////////////////////////////////////////
