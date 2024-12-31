@@ -1,0 +1,14 @@
+%%%%%%%%%%%%%%%  Ellipsoid encloser application:
+
+
+	To install the Ellipsoid_Encloser application on your computer, please follow the instructions below:
+
+	
+	1. Download all the .rar files in one folder (EE_Installer.part1.rar to EE_Installer.part14.rar).
+
+	
+	2. Right-click on the EE_Installer.part1.rar and extract the files.
+		This will generate the executive file.
+
+	
+	3. Run the executive file and follow the installation instruction.
