@@ -24,8 +24,8 @@
 %using optimization and coordinate ascent methods." In the Computers in Biology
 % and Medicine Journal. Upon usage of this code, please cite the below publication.
 % Enclosing 95% confidence area and volume to center of pressure and center of mass in posturography 
-%using optimization and coordinate ascent methods.(Authors: Alighanbari M.,
-%Alighanbari S., Griffin L.).
+%using optimization and coordinate ascent methods.
+% (Authors: Alighanbari M., Alighanbari S., Griffin L.).
 
 %% clear all close all,
 clear all;
@@ -195,7 +195,7 @@ else
         y = A(:,2);
         [Export(i,1),Export(i,2),Export(i,3),Export(i,4), ...
             Export(i,5),Export(i,6),Export(i,7),Export(i,8), ...
-            Export(i,9),Export(i,10),Export(i,11),Export(i,12)] = MVEE_2d_v11(x,y,do_plot,do_display);
+            Export(i,9),Export(i,10),Export(i,11),Export(i,12)] = MVEE_2d_v11(x,y,do_plot,do_display,tolerance);
         clear A x y
     end
 end
@@ -475,13 +475,118 @@ end
 
 %% Exporting the variables of interest:
 if answer=='CoM'
-    writecell(Volume,'95% confidence volume for the CoM using different methods.xlsx');
-    writecell(Percent,'Percentage of numbers of points in the ellipsoid for different approach.xlsx');
-    writecell(Time,'Run time for each method when enclosing ellsoid to 95% of CoM data.xlsx');
+    % Generate file path:
+    if contains(path,'\')==1
+        Resultpath = strcat(path,'\RESULTS');
+        if ~exist(Resultpath,'dir')
+            mkdir(Resultpath);
+        end
+        % exporting excel file:
+        Vname = strcat(Resultpath,'\95% confidence volume for the CoM using different methods.xlsx');
+        Pname = strcat(Resultpath,'\Percentage of numbers of points in the ellipsoid for different approach.xlsx');
+        Rname = strcat(Resultpath,'\Run time for each method when enclosing ellsoid to 95% of CoM data.xlsx');
+        writecell(Volume,Vname);
+        writecell(Percent,Pname);
+        writecell(Time,Rname);
+        % saving figures if any:
+        if do_plot==1
+            Picnumber= findall(0, 'Type', 'figure');
+            for i = 1:length(Picnumber)
+                fig = Picnumber(i);
+                pic = '\Figure ';
+                pic = strcat(pic,string(i));
+                picjpg = strcat(pic,' .jpg');
+                picfig = strcat(pic,' .fig');
+                Picname1 = strcat(Resultpath,picjpg);
+                Picname2 = strcat(Resultpath,picfig);
+                saveas(fig,Picname1);
+                saveas(fig,Picname2);
+            end
+        end
+    else
+        Resultpath = strcat(path,'/RESULTS');
+        if ~exist(Resultpath,'dir')
+            mkdir(Resultpath);
+        end
+        % export excel file:
+        Vname = strcat(Resultpath,'/95% confidence volume for the CoM using different methods.xlsx');
+        Pname = strcat(Resultpath,'/Percentage of numbers of points in the ellipsoid for different approach.xlsx');
+        Rname = strcat(Resultpath,'/Run time for each method when enclosing ellsoid to 95% of CoM data.xlsx');
+        writecell(Volume,Vname);
+        writecell(Percent,Pname);
+        writecell(Time,Rname);
+        % export figure
+        if do_plot==1
+            Picnumber= findall(0, 'Type', 'figure');
+            for i = 1:length(Picnumber)
+                fig = Picnumber(i);
+                pic = '/Figure ';
+                pic = strcat(pic,string(i));
+                picjpg = strcat(pic,' .jpg');
+                picfig = strcat(pic,' .fig');
+                Picname1 = strcat(Resultpath,picjpg);
+                Picname2 = strcat(Resultpath,picfig);
+                saveas(fig,Picname1);
+                saveas(fig,Picname2);
+            end
+        end
+    end
 else
-    writecell(Area,'95% confidence area for the CoP using different methods.xlsx');
-    writecell(Percent,'Percentage of numbers of points in the ellipse for different approach.xlsx');
-    writecell(Time,'Run time for each method when enclosing ellipse to 95% of CoP data.xlsx');
+    if contains(path,'\')==1
+        Resultpath = strcat(path,'\RESULTS');
+        if ~exist(Resultpath,'dir')
+            mkdir(Resultpath);
+        end
+        % export excel file:
+        Aname = strcat(Resultpath,'\95% confidence area for the CoP using different methods.xlsx');
+        Pname = strcat(Resultpath,'\Percentage of numbers of points in the ellipse for different approach.xlsx');
+        Rname = strcat(Resultpath,'\Run time for each method when enclosing ellipse to 95% of CoP data.xlsx');
+        writecell(Area,Aname);
+        writecell(Percent,Pname);
+        writecell(Time,Rname);
+        % Export figure:
+        if do_plot==1
+            Picnumber= findall(0, 'Type', 'figure');
+            for i = 1:length(Picnumber)
+                fig = Picnumber(i);
+                pic = '\Figure ';
+                pic = strcat(pic,string(i));
+                picjpg = strcat(pic,' .jpg');
+                picfig = strcat(pic,' .fig');
+                Picname1 = strcat(Resultpath,picjpg);
+                Picname2 = strcat(Resultpath,picfig);
+                saveas(fig,Picname1);
+                saveas(fig,Picname2);
+            end
+        end
+    else 
+        Resultpath = strcat(path,'/RESULTS');
+        if ~exist(Resultpath,'dir')
+            mkdir(Resultpath);
+        end
+        % export excel file:
+        Aname = strcat(Resultpath,'/95% confidence area for the CoP using different methods.xlsx');
+        Pname = strcat(Resultpath,'/Percentage of numbers of points in the ellipse for different approach.xlsx');
+        Rname = strcat(Resultpath,'/Run time for each method when enclosing ellipse to 95% of CoP data.xlsx');
+        writecell(Area,Aname);
+        writecell(Percent,Pname);
+        writecell(Time,Rname);
+        % export figure:
+        if do_plot==1
+            Picnumber= findall(0, 'Type', 'figure');
+            for i = 1:length(Picnumber)
+                fig = Picnumber(i);
+                pic = '/Figure ';
+                pic = strcat(pic,string(i));
+                picjpg = strcat(pic,' .jpg');
+                picfig = strcat(pic,' .fig');
+                Picname1 = strcat(Resultpath,picjpg);
+                Picname2 = strcat(Resultpath,picfig);
+                saveas(fig,Picname1);
+                saveas(fig,Picname2);
+            end
+        end
+    end
 end
 
 %% Message box:

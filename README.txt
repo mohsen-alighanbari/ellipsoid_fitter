@@ -4,7 +4,10 @@ using optimization and coordinate ascent methods." under review in
 the Computers in Biology and Medicine Journal. 
 
 Please cite the above publication if you are using all or parts of this 
-code. 
+code.
+ 
+DOI: https://doi.org/10.1016/j.compbiomed.2024.109563
+
 
 /////////////////////////////////////// Instructions /////////////////////////////////////////////
 
@@ -13,13 +16,14 @@ code.
 \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\  Center of pressure \\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
 For CoP data:
 In order to enclose ellipse to 95% CoP data, the below function can be used:
-[area_optimization,area_pca_paper,area_data_trimmer,area_pca,optimization_final_percent,data_trimmer_final_percent,pca_final_percent,caa_time,trim_time,optim_time,pca_paper_time,pca_time] = MVEE_2d_v11(x,y,do_plot,do_display)
+[area_optimization,area_pca_paper,area_data_trimmer,area_pca,optimization_final_percent,data_trimmer_final_percent,pca_final_percent,caa_time,trim_time,optim_time,pca_paper_time,pca_time] = MVEE_2d_v11(x,y,do_plot,do_display,tolerance)
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%% Input to the MVEE_2d_v11 function:%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 x: Represent the CoP movement in the anteroposterior direction
 y: Represent the CoP movement in the mediolateral direction
 do_plot: plotting the enclosed ellipse to the CoP data using an optimization algorithm, data trimmer, PCA, and Covariate methods. 
 do_display:  display the performance of all the methods in the Matlab command window.
+tolerance: Set tolerance value for the initial optimization. It should be selected as 1e-3 for data lower than 0.0001 and 1e-7 for other scenarios.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%  Output of the MVEE_2d_v11 function:  %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 area_optimization: Export the area of the enclosed ellipse to 95% of the data using an optimization algorithm

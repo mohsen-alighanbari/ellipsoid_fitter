@@ -20,7 +20,7 @@
 % OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 % SOFTWARE.
 
-function [area_optimization,area_pca_paper,area_data_trimmer,area_pca,optimization_final_percent,data_trimmer_final_percent,pca_final_percent,caa_time,trim_time,optim_time,pca_paper_time,pca_time] = MVEE_2d_v11(x,y,do_plot,do_display)
+function [area_optimization,area_pca_paper,area_data_trimmer,area_pca,optimization_final_percent,data_trimmer_final_percent,pca_final_percent,caa_time,trim_time,optim_time,pca_paper_time,pca_time] = MVEE_2d_v11(x,y,do_plot,do_display,tolerance)
 
 %%%%%%%%%%%%%%%%%%%% INPUT PARAMETERS %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -80,7 +80,7 @@ end
 
 % calling the coordinate ascent algorithm on original data to find the best fit ellipse
 tic;
-[u,R,factor,improv,mxv,mnv,flagstep,lamhist,var,time,iter,act,major_semi_length,minor_semi_length,major_angle] = minvol(X_original,X_original);
+[u,R,factor,improv,mxv,mnv,flagstep,lamhist,var,time,iter,act,major_semi_length,minor_semi_length,major_angle] = minvol(X_original,X_original,tolerance);
 elapsed_CAA_time = toc;
 caa_time = elapsed_CAA_time;
 
