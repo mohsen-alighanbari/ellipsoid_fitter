@@ -67,4 +67,4 @@ CAA_time: Export the time cost of the initial optimization for both the optimiza
 optim_time: Export the time cost of the optimization algorithm to enclose ellipsoid to 95% of the CoM data. 
 trim_time: Export the time cost of the data trimmer method to enclose ellipsoid to 95% of the CoM data.
 pca_time: Export the time cost of the PCA method to enclose ellipsoid to 95% of the CoM data.
- 
+test ruleset
